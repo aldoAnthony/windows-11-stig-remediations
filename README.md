@@ -18,6 +18,7 @@ Each STIG follows the same three steps:
 |---|---|---|---|---|
 | 1 | WN11-AU-000505 | Security event log must hold at least a week of audit records (MaxSize ≥ 5120000 KB) | [STIG-ID-WN11-AU-000505.ps1](STIG-ID-WN11-AU-000505.ps1) | ✅ Passed |
 | 2 | WN11-AU-000510 | System event log must be 32768 KB or greater | [STIG-ID-WN11-AU-000510.ps1](STIG-ID-WN11-AU-000510.ps1) | ✅ Passed |
+| 3 | WN11-CC-000005 | Camera access from the lock screen must be disabled | [STIG-ID-WN11-CC-000005.ps1](STIG-ID-WN11-CC-000005.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -78,6 +79,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-AU-000510 passed](screenshots/WN11-AU-000510/5-after-scan-passed.png)
 ![Audit output 32768 meeting the policy value](screenshots/WN11-AU-000510/6-after-output-32768.png)
+
+</details>
+
+### 3. WN11-CC-000005: Lock screen camera disabled
+
+**Finding:** camera access from the lock screen was not disabled, so anyone with physical access to a locked device could take photos or video without signing in. Azure VMs have no camera, but Tenable still checks the registry value.
+
+**Fix:** set `NoLockScreenCamera = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization`.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000005 failed](screenshots/WN11-CC-000005/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000005](screenshots/WN11-CC-000005/2-before-audit-details.png)
+![Audit output NULL against policy value 1](screenshots/WN11-CC-000005/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000005/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000005 passed](screenshots/WN11-CC-000005/5-after-scan-passed.png)
+![Audit output 1 matching the policy value](screenshots/WN11-CC-000005/6-after-output-1.png)
 
 </details>
 
