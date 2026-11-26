@@ -23,6 +23,7 @@ Each STIG follows the same three steps:
 | 5 | WN11-CC-000180 | AutoPlay must be turned off for non-volume devices (CAT I) | [STIG-ID-WN11-CC-000180.ps1](STIG-ID-WN11-CC-000180.ps1) | ✅ Passed |
 | 6 | WN11-CC-000185 | Default AutoRun behaviour must prevent autorun commands (CAT I) | [STIG-ID-WN11-CC-000185.ps1](STIG-ID-WN11-CC-000185.ps1) | ✅ Passed |
 | 7 | WN11-CC-000190 | AutoPlay must be disabled for all drives (CAT I) | [STIG-ID-WN11-CC-000190.ps1](STIG-ID-WN11-CC-000190.ps1) | ✅ Passed |
+| 8 | WN11-CC-000315 | Windows Installer 'Always install with elevated privileges' must be disabled (CAT I) | [STIG-ID-WN11-CC-000315.ps1](STIG-ID-WN11-CC-000315.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -233,6 +234,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000190 passed](screenshots/WN11-CC-000190/5-after-scan-passed.png)
 ![Audit output 255 matching the policy value](screenshots/WN11-CC-000190/6-after-output-255.png)
+
+</details>
+
+### 8. WN11-CC-000315: Always install with elevated privileges disabled (CAT I)
+
+**Finding:** with "Always install with elevated privileges" on, any user can install an .msi package with SYSTEM rights. Attackers use this as a well-known privilege escalation: a standard user builds a malicious MSI and runs it to get SYSTEM. The setting is effectively off by default, but Tenable fails it because the value isn't explicitly set (NULL).
+
+**Fix:** set `AlwaysInstallElevated = 0` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer`. Unlike the other STIGs, the required value here is 0 (disabled), and the STIG requires it to be set explicitly.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000315 failed](screenshots/WN11-CC-000315/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000315](screenshots/WN11-CC-000315/2-before-audit-details.png)
+![Audit output NULL against policy value 0](screenshots/WN11-CC-000315/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000315/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000315 passed](screenshots/WN11-CC-000315/5-after-scan-passed.png)
+![Audit output 0 matching the policy value](screenshots/WN11-CC-000315/6-after-output-0.png)
 
 </details>
 
