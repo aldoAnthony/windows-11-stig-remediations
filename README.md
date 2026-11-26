@@ -1,6 +1,16 @@
 # Windows 11 STIG Remediations 🔒
 
-PowerShell scripts that remediate failed DISA STIG checks on a Windows 11 Pro VM in Azure, completed as part of my LOG(N) Pacific cybersecurity internship.
+PowerShell scripts that remediate ten failed DISA STIG checks on a Windows 11 Pro VM in Azure, completed as part of my LOG(N) Pacific cybersecurity internship.
+
+**Results:** 10 of 10 failed STIG checks remediated and verified with a Tenable rescan, including 5 CAT I (high severity) findings.
+
+| Area | STIGs |
+|---|---|
+| Audit logging | WN11-AU-000505, WN11-AU-000510, WN11-CC-000326 |
+| Lock screen | WN11-CC-000005, WN11-CC-000010 |
+| AutoPlay and AutoRun | WN11-CC-000180, WN11-CC-000185, WN11-CC-000190 |
+| Privilege escalation | WN11-CC-000315 |
+| Remote management | WN11-CC-000330 |
 
 ## Method
 
@@ -25,6 +35,7 @@ Each STIG follows the same three steps:
 | 7 | WN11-CC-000190 | AutoPlay must be disabled for all drives (CAT I) | [STIG-ID-WN11-CC-000190.ps1](STIG-ID-WN11-CC-000190.ps1) | ✅ Passed |
 | 8 | WN11-CC-000315 | Windows Installer 'Always install with elevated privileges' must be disabled (CAT I) | [STIG-ID-WN11-CC-000315.ps1](STIG-ID-WN11-CC-000315.ps1) | ✅ Passed |
 | 9 | WN11-CC-000330 | WinRM client must not use Basic authentication (CAT I) | [STIG-ID-WN11-CC-000330.ps1](STIG-ID-WN11-CC-000330.ps1) | ✅ Passed |
+| 10 | WN11-CC-000326 | PowerShell script block logging must be enabled | [STIG-ID-WN11-CC-000326.ps1](STIG-ID-WN11-CC-000326.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -295,6 +306,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000330 passed](screenshots/WN11-CC-000330/5-after-scan-passed.png)
 ![Audit output 0 matching the policy value](screenshots/WN11-CC-000330/6-after-output-0.png)
+
+</details>
+
+### 10. WN11-CC-000326: PowerShell script block logging enabled
+
+**Finding:** PowerShell script block logging was off, so if an attacker ran obfuscated or encoded PowerShell on the VM, nothing recorded the code that actually executed. With logging on, Windows writes the de-obfuscated script content to Event ID 4104 in Microsoft-Windows-PowerShell/Operational, which defenders hunt on in tools like Microsoft Sentinel and Defender for Endpoint.
+
+**Fix:** set `EnableScriptBlockLogging = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging`.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000326 failed](screenshots/WN11-CC-000326/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000326](screenshots/WN11-CC-000326/2-before-audit-details.png)
+![Audit output NULL against policy value 1](screenshots/WN11-CC-000326/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000326/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000326 passed](screenshots/WN11-CC-000326/5-after-scan-passed.png)
+![Audit output 1 matching the policy value](screenshots/WN11-CC-000326/6-after-output-1.png)
 
 </details>
 
