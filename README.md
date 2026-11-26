@@ -19,6 +19,7 @@ Each STIG follows the same three steps:
 | 1 | WN11-AU-000505 | Security event log must hold at least a week of audit records (MaxSize ≥ 5120000 KB) | [STIG-ID-WN11-AU-000505.ps1](STIG-ID-WN11-AU-000505.ps1) | ✅ Passed |
 | 2 | WN11-AU-000510 | System event log must be 32768 KB or greater | [STIG-ID-WN11-AU-000510.ps1](STIG-ID-WN11-AU-000510.ps1) | ✅ Passed |
 | 3 | WN11-CC-000005 | Camera access from the lock screen must be disabled | [STIG-ID-WN11-CC-000005.ps1](STIG-ID-WN11-CC-000005.ps1) | ✅ Passed |
+| 4 | WN11-CC-000010 | Slide shows on the lock screen must be disabled | [STIG-ID-WN11-CC-000010.ps1](STIG-ID-WN11-CC-000010.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -109,6 +110,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000005 passed](screenshots/WN11-CC-000005/5-after-scan-passed.png)
 ![Audit output 1 matching the policy value](screenshots/WN11-CC-000005/6-after-output-1.png)
+
+</details>
+
+### 4. WN11-CC-000010: Lock screen slide show disabled
+
+**Finding:** the lock screen slide show was not disabled, so anyone standing at a locked device could see personal or sensitive images.
+
+**Fix:** set `NoLockScreenSlideshow = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization`.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000010 failed](screenshots/WN11-CC-000010/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000010](screenshots/WN11-CC-000010/2-before-audit-details.png)
+![Audit output NULL against policy value 1](screenshots/WN11-CC-000010/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000010/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000010 passed](screenshots/WN11-CC-000010/5-after-scan-passed.png)
+![Audit output 1 matching the policy value](screenshots/WN11-CC-000010/6-after-output-1.png)
 
 </details>
 
