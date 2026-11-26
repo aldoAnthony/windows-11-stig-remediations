@@ -22,6 +22,7 @@ Each STIG follows the same three steps:
 | 4 | WN11-CC-000010 | Slide shows on the lock screen must be disabled | [STIG-ID-WN11-CC-000010.ps1](STIG-ID-WN11-CC-000010.ps1) | ✅ Passed |
 | 5 | WN11-CC-000180 | AutoPlay must be turned off for non-volume devices (CAT I) | [STIG-ID-WN11-CC-000180.ps1](STIG-ID-WN11-CC-000180.ps1) | ✅ Passed |
 | 6 | WN11-CC-000185 | Default AutoRun behaviour must prevent autorun commands (CAT I) | [STIG-ID-WN11-CC-000185.ps1](STIG-ID-WN11-CC-000185.ps1) | ✅ Passed |
+| 7 | WN11-CC-000190 | AutoPlay must be disabled for all drives (CAT I) | [STIG-ID-WN11-CC-000190.ps1](STIG-ID-WN11-CC-000190.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -202,6 +203,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000185 passed](screenshots/WN11-CC-000185/5-after-scan-passed.png)
 ![Audit output 1 matching the policy value](screenshots/WN11-CC-000185/6-after-output-1.png)
+
+</details>
+
+### 7. WN11-CC-000190: AutoPlay off for all drives (CAT I)
+
+**Finding:** AutoPlay was still on for some drive types, including USB drives, CDs and network drives. Windows could then launch content automatically when media was inserted, a common way for malware to get onto a machine.
+
+**Fix:** set `NoDriveTypeAutoRun = 255` (DWORD, `0xFF`) under `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer`, the same key as STIG 6. The value 255 is a bitmask that turns AutoPlay off for every drive type.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000190 failed](screenshots/WN11-CC-000190/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000190](screenshots/WN11-CC-000190/2-before-audit-details.png)
+![Audit output NULL against policy value 255](screenshots/WN11-CC-000190/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000190/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000190 passed](screenshots/WN11-CC-000190/5-after-scan-passed.png)
+![Audit output 255 matching the policy value](screenshots/WN11-CC-000190/6-after-output-255.png)
 
 </details>
 
