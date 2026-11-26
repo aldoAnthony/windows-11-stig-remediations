@@ -20,6 +20,7 @@ Each STIG follows the same three steps:
 | 2 | WN11-AU-000510 | System event log must be 32768 KB or greater | [STIG-ID-WN11-AU-000510.ps1](STIG-ID-WN11-AU-000510.ps1) | ✅ Passed |
 | 3 | WN11-CC-000005 | Camera access from the lock screen must be disabled | [STIG-ID-WN11-CC-000005.ps1](STIG-ID-WN11-CC-000005.ps1) | ✅ Passed |
 | 4 | WN11-CC-000010 | Slide shows on the lock screen must be disabled | [STIG-ID-WN11-CC-000010.ps1](STIG-ID-WN11-CC-000010.ps1) | ✅ Passed |
+| 5 | WN11-CC-000180 | AutoPlay must be turned off for non-volume devices (CAT I) | [STIG-ID-WN11-CC-000180.ps1](STIG-ID-WN11-CC-000180.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -140,6 +141,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000010 passed](screenshots/WN11-CC-000010/5-after-scan-passed.png)
 ![Audit output 1 matching the policy value](screenshots/WN11-CC-000010/6-after-output-1.png)
+
+</details>
+
+### 5. WN11-CC-000180: AutoPlay off for non-volume devices (CAT I)
+
+**Finding:** AutoPlay was allowed for non-volume devices such as phones, cameras and media players connected over MTP. A malicious device could use AutoPlay to start actions without the user doing anything.
+
+**Fix:** set `NoAutoplayfornonVolume = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer`.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000180 failed](screenshots/WN11-CC-000180/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000180](screenshots/WN11-CC-000180/2-before-audit-details.png)
+![Audit output NULL against policy value 1](screenshots/WN11-CC-000180/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000180/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000180 passed](screenshots/WN11-CC-000180/5-after-scan-passed.png)
+![Audit output 1 matching the policy value](screenshots/WN11-CC-000180/6-after-output-1.png)
 
 </details>
 
