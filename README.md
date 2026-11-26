@@ -1,344 +1,206 @@
-# Windows 11 STIG Remediations 🔒
+# Windows 11 STIG Remediation with PowerShell
 
-PowerShell scripts that remediate ten failed DISA STIG checks on a Windows 11 Pro VM in Azure, completed as part of my LOG(N) Pacific cybersecurity internship.
+Remediating 10 failed DISA STIG checks on a Windows 11 virtual machine in Azure. I found the failures with a Tenable Vulnerability Management compliance scan, fixed each one with a PowerShell script, and confirmed the fixes with a second scan.
 
-**Results:** 10 of 10 failed STIG checks remediated and verified with a Tenable rescan, including 5 CAT I (high severity) findings.
+---
 
-| Area | STIGs |
+## Overview
+
+| | |
 |---|---|
-| Audit logging | WN11-AU-000505, WN11-AU-000510, WN11-CC-000326 |
-| Lock screen | WN11-CC-000005, WN11-CC-000010 |
-| AutoPlay and AutoRun | WN11-CC-000180, WN11-CC-000185, WN11-CC-000190 |
-| Privilege escalation | WN11-CC-000315 |
-| Remote management | WN11-CC-000330 |
+| **Target** | Windows 11 Pro VM (Azure) |
+| **Benchmark** | DISA Microsoft Windows 11 STIG v2r11 |
+| **Scanner** | Tenable Vulnerability Management (credentialed compliance scan) |
+| **Remediation** | PowerShell (registry-based policy configuration) |
+| **Initial scan** | 153 failed / 11 warning / 94 passed |
+| **After remediation** | 143 failed / 11 warning / 104 passed (all 10 targeted checks: FAILED → PASSED) |
 
-## Method
+### Full scan results
 
-Each STIG follows the same three steps:
+<details>
+<summary>Before remediation: 153 failed / 94 passed</summary>
 
-1. **Scan:** run an authenticated Tenable compliance scan using the DISA Microsoft Windows 11 STIG audit and identify the failed check.
-2. **Remediate:** write and run a PowerShell script that applies the required setting.
-3. **Verify:** rescan with Tenable and confirm the check now passes.
+![Tenable audit summary before remediation](scan-results/full-scan-before.png)
 
-**Environment:** Windows 11 Pro (Azure VM) · Tenable Vulnerability Management (LOCAL-SCAN-ENGINE-01) · DISA Microsoft Windows 11 STIG V2R11 · PowerShell 5.1
+</details>
+
+<details>
+<summary>After remediation: 143 failed / 104 passed</summary>
+
+![Tenable audit summary after remediation](scan-results/full-scan-after.png)
+
+</details>
+
+## Workflow
+
+```
+1. Deploy        Windows 11 VM in Azure
+2. Scan          Tenable credentialed scan with the DISA Windows 11 STIG audit
+3. Triage        Pick 10 failed checks (low-risk, registry-based, verifiable)
+4. Evidence      Capture "before" state: audit result + actual vs policy value
+5. Remediate     Run a PowerShell script per STIG (sets the value, verifies it)
+6. Rescan        Run the same scan again
+7. Validate      Confirm every check moved from FAILED to PASSED
+```
+
+---
 
 ## Remediated STIGs
 
-| # | STIG ID | What it fixes | Script | Result |
-|---|---|---|---|---|
-| 1 | WN11-AU-000505 | Security event log must hold at least a week of audit records (MaxSize ≥ 5120000 KB) | [STIG-ID-WN11-AU-000505.ps1](STIG-ID-WN11-AU-000505.ps1) | ✅ Passed |
-| 2 | WN11-AU-000510 | System event log must be 32768 KB or greater | [STIG-ID-WN11-AU-000510.ps1](STIG-ID-WN11-AU-000510.ps1) | ✅ Passed |
-| 3 | WN11-CC-000005 | Camera access from the lock screen must be disabled | [STIG-ID-WN11-CC-000005.ps1](STIG-ID-WN11-CC-000005.ps1) | ✅ Passed |
-| 4 | WN11-CC-000010 | Slide shows on the lock screen must be disabled | [STIG-ID-WN11-CC-000010.ps1](STIG-ID-WN11-CC-000010.ps1) | ✅ Passed |
-| 5 | WN11-CC-000180 | AutoPlay must be turned off for non-volume devices (CAT I) | [STIG-ID-WN11-CC-000180.ps1](STIG-ID-WN11-CC-000180.ps1) | ✅ Passed |
-| 6 | WN11-CC-000185 | Default AutoRun behaviour must prevent autorun commands (CAT I) | [STIG-ID-WN11-CC-000185.ps1](STIG-ID-WN11-CC-000185.ps1) | ✅ Passed |
-| 7 | WN11-CC-000190 | AutoPlay must be disabled for all drives (CAT I) | [STIG-ID-WN11-CC-000190.ps1](STIG-ID-WN11-CC-000190.ps1) | ✅ Passed |
-| 8 | WN11-CC-000315 | Windows Installer 'Always install with elevated privileges' must be disabled (CAT I) | [STIG-ID-WN11-CC-000315.ps1](STIG-ID-WN11-CC-000315.ps1) | ✅ Passed |
-| 9 | WN11-CC-000330 | WinRM client must not use Basic authentication (CAT I) | [STIG-ID-WN11-CC-000330.ps1](STIG-ID-WN11-CC-000330.ps1) | ✅ Passed |
-| 10 | WN11-CC-000326 | PowerShell script block logging must be enabled | [STIG-ID-WN11-CC-000326.ps1](STIG-ID-WN11-CC-000326.ps1) | ✅ Passed |
+| # | STIG ID | CAT | What it fixes | Registry value set | Script |
+|---|---|:---:|---|---|---|
+| 1 | WN11-AU-000505 | II | Security event log size ≥ 5120000 KB | `EventLog\Security\MaxSize = 5120000` | [script](STIG-ID-WN11-AU-000505/STIG-ID-WN11-AU-000505.ps1) |
+| 2 | WN11-AU-000510 | II | System event log size ≥ 32768 KB | `EventLog\System\MaxSize = 32768` | [script](STIG-ID-WN11-AU-000510/STIG-ID-WN11-AU-000510.ps1) |
+| 3 | WN11-CC-000005 | II | Disables camera access from the lock screen | `Personalization\NoLockScreenCamera = 1` | [script](STIG-ID-WN11-CC-000005/STIG-ID-WN11-CC-000005.ps1) |
+| 4 | WN11-CC-000010 | II | Disables slide shows on the lock screen | `Personalization\NoLockScreenSlideshow = 1` | [script](STIG-ID-WN11-CC-000010/STIG-ID-WN11-CC-000010.ps1) |
+| 5 | WN11-CC-000180 | I | Turns off AutoPlay for non-volume devices | `Explorer\NoAutoplayfornonVolume = 1` | [script](STIG-ID-WN11-CC-000180/STIG-ID-WN11-CC-000180.ps1) |
+| 6 | WN11-CC-000185 | I | Blocks autorun commands | `Policies\Explorer\NoAutorun = 1` | [script](STIG-ID-WN11-CC-000185/STIG-ID-WN11-CC-000185.ps1) |
+| 7 | WN11-CC-000190 | I | Turns off AutoPlay for all drives | `Policies\Explorer\NoDriveTypeAutoRun = 255` | [script](STIG-ID-WN11-CC-000190/STIG-ID-WN11-CC-000190.ps1) |
+| 8 | WN11-CC-000315 | I | Disables "Always install with elevated privileges" | `Installer\AlwaysInstallElevated = 0` | [script](STIG-ID-WN11-CC-000315/STIG-ID-WN11-CC-000315.ps1) |
+| 9 | WN11-CC-000330 | I | Stops the WinRM client from using Basic authentication | `WinRM\Client\AllowBasic = 0` | [script](STIG-ID-WN11-CC-000330/STIG-ID-WN11-CC-000330.ps1) |
+| 10 | WN11-CC-000326 | II | Turns on PowerShell script block logging | `ScriptBlockLogging\EnableScriptBlockLogging = 1` | [script](STIG-ID-WN11-CC-000326/STIG-ID-WN11-CC-000326.ps1) |
+
+**5 of the 10 are CAT I (high severity)** findings.
+
+---
+
+## How each script works
+
+Every script follows the same pattern:
+
+1. **Requires admin.** `#Requires -RunAsAdministrator` stops the script straight away if the session isn't elevated.
+2. **Creates the policy key** if it doesn't exist.
+3. **Sets the required value** as a `DWORD`.
+4. **Reads the value back** and prints a green `SUCCESS` or a red `FAILED` line (exit code 1 on failure).
+
+```powershell
+.\STIG-ID-WN11-AU-000505.ps1
+# SUCCESS: 'MaxSize' is set to '5120000' KB at 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security'. WN11-AU-000505 remediated.
+```
+
+---
 
 ## Evidence
 
-### 1. WN11-AU-000505: Security event log size
+Each STIG folder contains the script and its screenshots:
 
-**Finding:** no maximum size was configured for the Security event log, so audit records could be overwritten before anyone reviewed them. Tenable expects a value of at least 5120000 KB.
+```
+STIG-ID-WN11-XX-000000/
+├── STIG-ID-WN11-XX-000000.ps1
+├── 1-before-audit.png       # Tenable Audits tab: FAILED
+├── 2-before-details.png     # Audit details: solution + references
+├── 3-before-output.png      # Asset output: NULL vs policy value
+├── 4-during.png             # PowerShell: SUCCESS + registry check
+├── 5-after-audit.png        # Tenable Audits tab: PASSED
+└── 6-after-output.png       # Asset output: new value
+```
 
-**Fix:** set `MaxSize = 5120000` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\Security`. This is an upper limit, so Windows doesn't reserve the disk space up front.
+### STIG 1: WN11-AU-000505 (Security event log size)
 
-<details>
-<summary>Before: check failed</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-AU-000505/3-before-output.png) | ![after](STIG-ID-WN11-AU-000505/6-after-output.png) |
 
-![Tenable scan showing WN11-AU-000505 failed](screenshots/WN11-AU-000505/1-before-scan-failed.png)
-![Audit details and solution for WN11-AU-000505](screenshots/WN11-AU-000505/2-before-audit-details.png)
-![Audit output NULL against policy value 5120000 or more](screenshots/WN11-AU-000505/3-before-output-null.png)
+**Remediation:** ![during](STIG-ID-WN11-AU-000505/4-during.png)
 
-</details>
+### STIG 2: WN11-AU-000510 (System event log size)
 
-<details>
-<summary>Remediation: script run</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-AU-000510/3-before-output.png) | ![after](STIG-ID-WN11-AU-000510/6-after-output.png) |
 
-![PowerShell output showing MaxSize set to 5120000](screenshots/WN11-AU-000505/4-script-success.png)
+**Remediation:** ![during](STIG-ID-WN11-AU-000510/4-during.png)
 
-</details>
+### STIG 3: WN11-CC-000005 (Lock screen camera)
 
-<details>
-<summary>After: check passed</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000005/3-before-output.png) | ![after](STIG-ID-WN11-CC-000005/6-after-output.png) |
 
-![Tenable rescan showing WN11-AU-000505 passed](screenshots/WN11-AU-000505/5-after-scan-passed.png)
-![Audit output 5120000 meeting the policy value](screenshots/WN11-AU-000505/6-after-output-5120000.png)
+**Remediation:** ![during](STIG-ID-WN11-CC-000005/4-during.png)
 
-</details>
+### STIG 4: WN11-CC-000010 (Lock screen slideshow)
 
-### 2. WN11-AU-000510: System event log size
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000010/3-before-output.png) | ![after](STIG-ID-WN11-CC-000010/6-after-output.png) |
 
-**Finding:** no maximum size was configured for the System event log. If the log is too small, older events are overwritten quickly and lost before anyone can investigate them. Tenable expects a value of at least 32768 KB.
+**Remediation:** ![during](STIG-ID-WN11-CC-000010/4-during.png)
 
-**Fix:** set `MaxSize = 32768` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\EventLog\System`.
+### STIG 5: WN11-CC-000180 (AutoPlay, non-volume devices)
 
-<details>
-<summary>Before: check failed</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000180/3-before-output.png) | ![after](STIG-ID-WN11-CC-000180/6-after-output.png) |
 
-![Tenable scan showing WN11-AU-000510 failed](screenshots/WN11-AU-000510/1-before-scan-failed.png)
-![Audit details and solution for WN11-AU-000510](screenshots/WN11-AU-000510/2-before-audit-details.png)
-![Audit output NULL against policy value 32768 or more](screenshots/WN11-AU-000510/3-before-output-null.png)
+**Remediation:** ![during](STIG-ID-WN11-CC-000180/4-during.png)
 
-</details>
+### STIG 6: WN11-CC-000185 (Autorun commands)
 
-<details>
-<summary>Remediation: script run</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000185/3-before-output.png) | ![after](STIG-ID-WN11-CC-000185/6-after-output.png) |
 
-![PowerShell output showing MaxSize set to 32768](screenshots/WN11-AU-000510/4-script-success.png)
+**Remediation:** ![during](STIG-ID-WN11-CC-000185/4-during.png)
 
-</details>
+### STIG 7: WN11-CC-000190 (AutoPlay, all drives)
 
-<details>
-<summary>After: check passed</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000190/3-before-output.png) | ![after](STIG-ID-WN11-CC-000190/6-after-output.png) |
 
-![Tenable rescan showing WN11-AU-000510 passed](screenshots/WN11-AU-000510/5-after-scan-passed.png)
-![Audit output 32768 meeting the policy value](screenshots/WN11-AU-000510/6-after-output-32768.png)
+**Remediation:** ![during](STIG-ID-WN11-CC-000190/4-during.png)
 
-</details>
+### STIG 8: WN11-CC-000315 (Always install elevated)
 
-### 3. WN11-CC-000005: Lock screen camera disabled
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000315/3-before-output.png) | ![after](STIG-ID-WN11-CC-000315/6-after-output.png) |
 
-**Finding:** camera access from the lock screen was not disabled, so anyone with physical access to a locked device could take photos or video without signing in. Azure VMs have no camera, but Tenable still checks the registry value.
+**Remediation:** ![during](STIG-ID-WN11-CC-000315/4-during.png)
 
-**Fix:** set `NoLockScreenCamera = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization`.
+### STIG 9: WN11-CC-000330 (WinRM client Basic auth)
 
-<details>
-<summary>Before: check failed</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000330/3-before-output.png) | ![after](STIG-ID-WN11-CC-000330/6-after-output.png) |
 
-![Tenable scan showing WN11-CC-000005 failed](screenshots/WN11-CC-000005/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000005](screenshots/WN11-CC-000005/2-before-audit-details.png)
-![Audit output NULL against policy value 1](screenshots/WN11-CC-000005/3-before-output-null.png)
+**Remediation:** ![during](STIG-ID-WN11-CC-000330/4-during.png)
 
-</details>
+### STIG 10: WN11-CC-000326 (PowerShell script block logging)
 
-<details>
-<summary>Remediation: script run</summary>
+| Before | After |
+|---|---|
+| ![before](STIG-ID-WN11-CC-000326/3-before-output.png) | ![after](STIG-ID-WN11-CC-000326/6-after-output.png) |
 
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000005/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000005 passed](screenshots/WN11-CC-000005/5-after-scan-passed.png)
-![Audit output 1 matching the policy value](screenshots/WN11-CC-000005/6-after-output-1.png)
-
-</details>
-
-### 4. WN11-CC-000010: Lock screen slide show disabled
-
-**Finding:** the lock screen slide show was not disabled, so anyone standing at a locked device could see personal or sensitive images.
-
-**Fix:** set `NoLockScreenSlideshow = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization`.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000010 failed](screenshots/WN11-CC-000010/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000010](screenshots/WN11-CC-000010/2-before-audit-details.png)
-![Audit output NULL against policy value 1](screenshots/WN11-CC-000010/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000010/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000010 passed](screenshots/WN11-CC-000010/5-after-scan-passed.png)
-![Audit output 1 matching the policy value](screenshots/WN11-CC-000010/6-after-output-1.png)
-
-</details>
-
-### 5. WN11-CC-000180: AutoPlay off for non-volume devices (CAT I)
-
-**Finding:** AutoPlay was allowed for non-volume devices such as phones, cameras and media players connected over MTP. A malicious device could use AutoPlay to start actions without the user doing anything.
-
-**Fix:** set `NoAutoplayfornonVolume = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer`.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000180 failed](screenshots/WN11-CC-000180/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000180](screenshots/WN11-CC-000180/2-before-audit-details.png)
-![Audit output NULL against policy value 1](screenshots/WN11-CC-000180/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000180/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000180 passed](screenshots/WN11-CC-000180/5-after-scan-passed.png)
-![Audit output 1 matching the policy value](screenshots/WN11-CC-000180/6-after-output-1.png)
-
-</details>
-
-### 6. WN11-CC-000185: AutoRun commands blocked (CAT I)
-
-**Finding:** Windows could automatically run the commands in an autorun.inf file when media was inserted. Malware has spread through USB drives this way for years.
-
-**Fix:** set `NoAutorun = 1` (DWORD) under `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer`. Note this path is different from STIG 5: it sits under `CurrentVersion\Policies`, not `Policies\Microsoft\Windows`.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000185 failed](screenshots/WN11-CC-000185/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000185](screenshots/WN11-CC-000185/2-before-audit-details.png)
-![Audit output NULL against policy value 1](screenshots/WN11-CC-000185/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000185/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000185 passed](screenshots/WN11-CC-000185/5-after-scan-passed.png)
-![Audit output 1 matching the policy value](screenshots/WN11-CC-000185/6-after-output-1.png)
-
-</details>
-
-### 7. WN11-CC-000190: AutoPlay off for all drives (CAT I)
-
-**Finding:** AutoPlay was still on for some drive types, including USB drives, CDs and network drives. Windows could then launch content automatically when media was inserted, a common way for malware to get onto a machine.
-
-**Fix:** set `NoDriveTypeAutoRun = 255` (DWORD, `0xFF`) under `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer`, the same key as STIG 6. The value 255 is a bitmask that turns AutoPlay off for every drive type.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000190 failed](screenshots/WN11-CC-000190/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000190](screenshots/WN11-CC-000190/2-before-audit-details.png)
-![Audit output NULL against policy value 255](screenshots/WN11-CC-000190/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000190/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000190 passed](screenshots/WN11-CC-000190/5-after-scan-passed.png)
-![Audit output 255 matching the policy value](screenshots/WN11-CC-000190/6-after-output-255.png)
-
-</details>
-
-### 8. WN11-CC-000315: Always install with elevated privileges disabled (CAT I)
-
-**Finding:** with "Always install with elevated privileges" on, any user can install an .msi package with SYSTEM rights. Attackers use this as a well-known privilege escalation: a standard user builds a malicious MSI and runs it to get SYSTEM. The setting is effectively off by default, but Tenable fails it because the value isn't explicitly set (NULL).
-
-**Fix:** set `AlwaysInstallElevated = 0` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer`. Unlike the other STIGs, the required value here is 0 (disabled), and the STIG requires it to be set explicitly.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000315 failed](screenshots/WN11-CC-000315/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000315](screenshots/WN11-CC-000315/2-before-audit-details.png)
-![Audit output NULL against policy value 0](screenshots/WN11-CC-000315/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000315/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000315 passed](screenshots/WN11-CC-000315/5-after-scan-passed.png)
-![Audit output 0 matching the policy value](screenshots/WN11-CC-000315/6-after-output-0.png)
-
-</details>
-
-### 9. WN11-CC-000330: WinRM client Basic authentication disabled (CAT I)
-
-**Finding:** the WinRM client was allowed to use Basic authentication, which sends credentials Base64-encoded but not encrypted. Anyone sniffing the network could capture them.
-
-**Fix:** set `AllowBasic = 0` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client`. This only changes how the VM connects out to other machines over WinRM, so RDP access is unaffected.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000330 failed](screenshots/WN11-CC-000330/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000330](screenshots/WN11-CC-000330/2-before-audit-details.png)
-![Audit output NULL against policy value 0](screenshots/WN11-CC-000330/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000330/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000330 passed](screenshots/WN11-CC-000330/5-after-scan-passed.png)
-![Audit output 0 matching the policy value](screenshots/WN11-CC-000330/6-after-output-0.png)
-
-</details>
-
-### 10. WN11-CC-000326: PowerShell script block logging enabled
-
-**Finding:** PowerShell script block logging was off, so if an attacker ran obfuscated or encoded PowerShell on the VM, nothing recorded the code that actually executed. With logging on, Windows writes the de-obfuscated script content to Event ID 4104 in Microsoft-Windows-PowerShell/Operational, which defenders hunt on in tools like Microsoft Sentinel and Defender for Endpoint.
-
-**Fix:** set `EnableScriptBlockLogging = 1` (DWORD) under `HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging`.
-
-<details>
-<summary>Before: check failed</summary>
-
-![Tenable scan showing WN11-CC-000326 failed](screenshots/WN11-CC-000326/1-before-scan-failed.png)
-![Audit details and solution for WN11-CC-000326](screenshots/WN11-CC-000326/2-before-audit-details.png)
-![Audit output NULL against policy value 1](screenshots/WN11-CC-000326/3-before-output-null.png)
-
-</details>
-
-<details>
-<summary>Remediation: script run</summary>
-
-![PowerShell output showing the setting applied](screenshots/WN11-CC-000326/4-script-success.png)
-
-</details>
-
-<details>
-<summary>After: check passed</summary>
-
-![Tenable rescan showing WN11-CC-000326 passed](screenshots/WN11-CC-000326/5-after-scan-passed.png)
-![Audit output 1 matching the policy value](screenshots/WN11-CC-000326/6-after-output-1.png)
-
-</details>
+**Remediation:** ![during](STIG-ID-WN11-CC-000326/4-during.png)
 
 ---
+
+## Why these 10
+
+I deliberately chose checks that are:
+
+- **Registry-based.** Each one is a single, verifiable value, so the before (`NULL`) and after states are clear.
+- **Safe for a remote cloud VM.** I avoided user-rights (UR), NTLM/LanMan and RDP-related checks that could cut off remote access to the Azure VM.
+- **Security-relevant.** They cover privilege escalation (`AlwaysInstallElevated`), credential exposure (WinRM Basic auth), removable-media malware (AutoRun/AutoPlay), physical-access risks (lock screen) and audit/detection coverage (event log sizing, script block logging).
+
+## Key takeaways
+
+- **Compliance scanners check configured policy, not effective behaviour.** `AlwaysInstallElevated` is already off by default, but the STIG still fails until the value is explicitly set to `0`. The asset output showing `NULL` makes this clear.
+- **Check what the scanner actually expects.** The STIG text for WN11-AU-000505 says "one week's worth of audit records", while the Tenable audit enforces a minimum of **5120000 KB**. I read the policy value in the asset output before writing the script.
+- **Hardening and detection go together.** Script block logging (WN11-CC-000326) writes Event ID **4104** to `Microsoft-Windows-PowerShell/Operational`, which records de-obfuscated PowerShell for threat hunting in Sentinel and MDE.
+- **Batch the rescans.** Capturing all "before" evidence first, remediating everything, then running one rescan saved several hours compared with rescanning after each fix.
+
+## Tools
+
+- Microsoft Azure (Windows 11 Pro VM)
+- Tenable Vulnerability Management
+- DISA Windows 11 STIG v2r11
+- PowerShell 5.1 / Windows Terminal
+
+---
+
+**Author:** Aldo Anthony · [LinkedIn](https://www.linkedin.com/in/aldoanthony) · [GitHub](https://github.com/aldoAnthony)
 
 Part of my [Cybersecurity Internship Portfolio](https://github.com/aldoAnthony/Cyber-Security-Internship-Portfolio).
