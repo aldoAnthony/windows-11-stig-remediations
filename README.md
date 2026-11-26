@@ -21,6 +21,7 @@ Each STIG follows the same three steps:
 | 3 | WN11-CC-000005 | Camera access from the lock screen must be disabled | [STIG-ID-WN11-CC-000005.ps1](STIG-ID-WN11-CC-000005.ps1) | ✅ Passed |
 | 4 | WN11-CC-000010 | Slide shows on the lock screen must be disabled | [STIG-ID-WN11-CC-000010.ps1](STIG-ID-WN11-CC-000010.ps1) | ✅ Passed |
 | 5 | WN11-CC-000180 | AutoPlay must be turned off for non-volume devices (CAT I) | [STIG-ID-WN11-CC-000180.ps1](STIG-ID-WN11-CC-000180.ps1) | ✅ Passed |
+| 6 | WN11-CC-000185 | Default AutoRun behaviour must prevent autorun commands (CAT I) | [STIG-ID-WN11-CC-000185.ps1](STIG-ID-WN11-CC-000185.ps1) | ✅ Passed |
 
 ## Evidence
 
@@ -171,6 +172,36 @@ Each STIG follows the same three steps:
 
 ![Tenable rescan showing WN11-CC-000180 passed](screenshots/WN11-CC-000180/5-after-scan-passed.png)
 ![Audit output 1 matching the policy value](screenshots/WN11-CC-000180/6-after-output-1.png)
+
+</details>
+
+### 6. WN11-CC-000185: AutoRun commands blocked (CAT I)
+
+**Finding:** Windows could automatically run the commands in an autorun.inf file when media was inserted. Malware has spread through USB drives this way for years.
+
+**Fix:** set `NoAutorun = 1` (DWORD) under `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer`. Note this path is different from STIG 5: it sits under `CurrentVersion\Policies`, not `Policies\Microsoft\Windows`.
+
+<details>
+<summary>Before: check failed</summary>
+
+![Tenable scan showing WN11-CC-000185 failed](screenshots/WN11-CC-000185/1-before-scan-failed.png)
+![Audit details and solution for WN11-CC-000185](screenshots/WN11-CC-000185/2-before-audit-details.png)
+![Audit output NULL against policy value 1](screenshots/WN11-CC-000185/3-before-output-null.png)
+
+</details>
+
+<details>
+<summary>Remediation: script run</summary>
+
+![PowerShell output showing the setting applied](screenshots/WN11-CC-000185/4-script-success.png)
+
+</details>
+
+<details>
+<summary>After: check passed</summary>
+
+![Tenable rescan showing WN11-CC-000185 passed](screenshots/WN11-CC-000185/5-after-scan-passed.png)
+![Audit output 1 matching the policy value](screenshots/WN11-CC-000185/6-after-output-1.png)
 
 </details>
 
